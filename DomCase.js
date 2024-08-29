@@ -12,7 +12,10 @@ let handleChange = function (width) {
         value = 100;
      }
      progress.style.width = `${value}%`
-     currentWidth = width;  
+     currentWidth = width; 
+     
+     var currentTime = value / 100 * audio.duration;
+     audio.currentTime = currentTime;
 }
 let isDrag = false;
 let initalClientX = 0;
@@ -25,15 +28,12 @@ progressBar.addEventListener("mousedown", function (e) {
         initalClientX = e.clientX;
         current = e.offsetX;
     }
-
 });
 
 progressSpan.addEventListener('mousedown', function (e) {
     e.stopPropagation();
     isDrag = true;
     initalClientX = e.clientX;
-    console.log(initalClientX);
-    
 });
 
 document.addEventListener("mouseup", function (e) {
@@ -51,7 +51,7 @@ document.addEventListener('mousemove', function (e) {
 
 
 // Xây dựng trình phát nhạc
-let audio = new Audio("./mp3/Alan Walker - Faded.mp3");
+let audio = new Audio("./mp3/yeu-voi-vang.mp3");
 let playBtn = document.querySelector('.play-btn');
 let currentTimeEl = progressBar.previousElementSibling;
 let durationEl = progressBar.nextElementSibling;
@@ -79,12 +79,81 @@ playBtn.addEventListener('click', function (e) {
     }
 });
 audio.addEventListener('timeupdate', function () {
-    console.log(audio.currentTime);
     currentTimeEl.innerText = getTime(audio.currentTime);
     let value = (audio.currentTime * 100) / audio.duration;
     progress.style.width = `${value}%`;
-})
+});
+console.log(lyrics);
 
 
+// Xây dựng chức năng karaoke
+let karaoke = document.querySelector('.karaoke');
+let karaokeInner = karaoke.querySelector('.karaoke-inner');
+let karaokePlayBtn = karaoke.querySelector('.karaoke-play');
+let karaokeClose = document.querySelector('.close');
+let player = document.querySelector('.player');
+let karaokeContent = document.querySelector('.karaoke-content');
+karaokePlayBtn.addEventListener('click', function () {
+    player.classList.add('bottom');
+    karaokeInner.classList.add('show');
+});
+
+karaokeClose.addEventListener('click', function () {
+    karaokeInner.classList.remove('show');
+    player.classList.remove('bottom');
+
+});
+
+let karaokeInterval;
+
+// Lắng nghe sự kiện play
+audio.addEventListener('play', function () {
+    console.log("play");
+    karaokeInterval = setInterval(handleKaraoke, 100);
+});
+
+// Lắng nghe sự kiện pause
+audio.addEventListener('pause', function () {
+    console.log("pause");
+    clearInterval(karaokeInterval);
+});
 
 
+let handleKaraoke = function () {
+    let currentTime = audio.currentTime * 1000;
+    let index = lyrics.findIndex(function (lyricItem) {
+        return (
+            currentTime >= lyricItem.words[0].startTime && currentTime <= lyricItem.words[lyricItem.words.length - 1].endTime
+        );
+    });
+    if(index !== -1){
+        if(index === 0){
+            let outputHtml = `<p>${getSentence(0)}</p>
+            <p>${getSentence(1)}</p>`;
+            karaokeContent.innerHTML = outputHtml;
+        } else {
+            // Số lẻ -> ẩn dòng đầu, hiển thị câu tiếp
+            if(index % 2 !== 0){
+                karaokeContent.children[0].innerText = getSentence(index + 1);
+            } else {
+                 // Số chẵn ẩn dòng 2, hiển thị câu tiếp
+                karaokeContent.children[1].innerText = getSentence(index + 1);
+            }
+           
+        }
+    }
+}
+
+let getSentence = function (index) {
+    return lyrics[index].words.map(function (word) {
+        return word.data;
+    })
+    .join(" ");
+};
+
+/*
+ Index = 1 -> Ẩn element 0 -> hiển thị index = 2
+ Index = 2 -> Ẩn element 1 -> hiển thị index = 3
+ Index = 3 -> Ẩn element 0 -> hiển thị index = 4
+ Index = 4 -> Ẩn element 1 -> hiển thị index = 5
+*/
