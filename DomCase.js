@@ -51,7 +51,7 @@ document.addEventListener('mousemove', function (e) {
 
 
 // Xây dựng trình phát nhạc
-let audio = new Audio("./mp3/yeu-voi-vang.mp3");
+let audio = new Audio("./mp3/hero.mp3");
 let playBtn = document.querySelector('.play-btn');
 let currentTimeEl = progressBar.previousElementSibling;
 let durationEl = progressBar.nextElementSibling;
