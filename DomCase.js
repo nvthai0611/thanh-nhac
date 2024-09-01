@@ -122,33 +122,30 @@ audio.addEventListener('pause', function () {
 let handleKaraoke = function () {
     let currentTime = audio.currentTime * 1000;
     let index = lyrics.findIndex(function (lyricItem) {
-        return (
-            currentTime >= lyricItem.words[0].startTime && currentTime <= lyricItem.words[lyricItem.words.length - 1].endTime
-        );
+        let firstWord = lyricItem.words[0];
+        let lastWord = lyricItem.words[lyricItem.words.length - 1];
+        return currentTime >= firstWord.startTime && currentTime <= lastWord.endTime;
     });
-    if(index !== -1){
-        if(index === 0){
-            let outputHtml = `<p>${getSentence(0)}</p>
-            <p>${getSentence(1)}</p>`;
-            karaokeContent.innerHTML = outputHtml;
+
+    if (index !== -1) {
+        let currentSentence = getSentence(index);
+        let nextSentence = getSentence(index + 1);
+        console.log(currentSentence, nextSentence);
+        if (karaokeContent.children.length === 0) {
+            // Initial setup
+            karaokeContent.innerHTML = `<p>${currentSentence}</p><p>${nextSentence}</p>`;
         } else {
-            // Số lẻ -> ẩn dòng đầu, hiển thị câu tiếp
-            if(index % 2 !== 0){
-                karaokeContent.children[0].innerText = getSentence(index + 1);
-            } else {
-                 // Số chẵn ẩn dòng 2, hiển thị câu tiếp
-                karaokeContent.children[1].innerText = getSentence(index + 1);
-            }
-           
+            // Update the appropriate line
+            let lineToUpdate = index % 2;
+            karaokeContent.children[lineToUpdate].textContent = currentSentence;
+            karaokeContent.children[1 - lineToUpdate].textContent = nextSentence;
         }
     }
 }
 
 let getSentence = function (index) {
-    return lyrics[index].words.map(function (word) {
-        return word.data;
-    })
-    .join(" ");
+    if (!lyrics[index]) return '';
+    return lyrics[index].words.map(word => word.data).join(' ');
 };
 
 /*
